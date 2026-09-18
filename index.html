@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Applications Hub // TERMINAL_ACCESS</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030507;--panel:rgba(2,6,10,.94);--cyan:#00e5ff;--green:#00ff66;--red:#ff003c;--amber:#ffb700;--line:rgba(0,229,255,.3)}
+*{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:"Rajdhani",sans-serif;background:var(--bg);color:#e0fff0;position:relative}
+body:before{content:"";position:fixed;inset:-50%;background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);background-size:40px 40px;animation:grid 42s linear infinite;z-index:-2}
+@keyframes grid{to{background-position:40px 40px}}
+.header{height:58px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:var(--panel);border-bottom:1px solid var(--green);box-shadow:0 5px 20px rgba(0,0,0,.6)}
+.logo{font-size:22px;font-weight:900;letter-spacing:3px;color:#fff;text-transform:uppercase;text-shadow:0 0 10px rgba(0,255,102,.35)}
+.logo:before{content:"SYS.CORE//";color:var(--cyan);font-size:13px;font-weight:400;letter-spacing:2px;margin-right:10px}
+.page-title{font-size:12px;font-weight:900;color:#000;background:var(--green);padding:7px 18px;text-transform:uppercase;letter-spacing:2px}
+.module-tabs{height:62px;padding:8px 28px;display:flex;gap:10px;align-items:center;background:rgba(2,6,10,.9);border-bottom:1px solid var(--line)}
+.module-tab{min-width:140px;padding:10px 18px;background:rgba(0,0,0,.6);border:1px solid var(--line);color:#5b8c7a;font:900 12px "Rajdhani";letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;clip-path:polygon(12px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 12px);transition:.18s}
+.module-tab:hover{color:#fff;border-color:var(--cyan);transform:translateY(-1px)}
+.module-tab.active{background:var(--cyan);color:#000;border-color:var(--cyan);box-shadow:0 0 16px rgba(0,229,255,.25)}
+#moduleHost{height:calc(100vh - 120px);width:100%;position:relative}
+.module-frame{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:var(--bg)}
+.module-frame.active{display:block}
+@media(max-width:900px){.module-tabs{padding:8px 12px;gap:6px;overflow-x:auto}.module-tab{min-width:125px;padding:9px 12px;font-size:10px}.header{padding:0 16px}.page-title{display:none}}
+</style>
+</head>
+<body>
+<header class="header"><div class="logo">Recruiter ATS</div><div class="page-title">Applications Hub</div></header>
+<nav class="module-tabs" aria-label="ATS modules">
+<button class="module-tab active" data-module="applications">Applications</button>
+<button class="module-tab" data-module="sourced">Sourced</button>
+<button class="module-tab" data-module="processed">Processed</button>
+<button class="module-tab" data-module="interviews">Interviews Scheduled</button>
+<button class="module-tab" data-module="trackers">Trackers</button>
+</nav>
+<div id="moduleHost"></div>
+<script>
+const host=document.getElementById("moduleHost");
+const tabs=[...document.querySelectorAll(".module-tab")];
+const frames=new Map();
+const files={applications:"applications.html",sourced:"sourced.html",processed:"processed.html",interviews:"interviews.html",trackers:"trackers.html"};
+function switchModule(name){
+  tabs.forEach(t=>t.classList.toggle("active",t.dataset.module===name));
+  let frame=frames.get(name);
+  if(!frame){
+    frame=document.createElement("iframe");
+    frame.className="module-frame";
+    frame.title=name;
+    frame.loading="eager";
+    frame.src=files[name];
+    frame.addEventListener("load",()=>frame.classList.add("loaded"),{once:true});
+    host.appendChild(frame);
+    frames.set(name,frame);
+  }
+  frames.forEach((f,key)=>f.classList.toggle("active",key===name));
+  localStorage.setItem("ats-active-module",name);
+}
+tabs.forEach(t=>t.addEventListener("click",()=>switchModule(t.dataset.module)));
+window.addEventListener("message",event=>{ if(event.data?.type==="ats-switch-module" && files[event.data.module]) switchModule(event.data.module); });
+const initial=localStorage.getItem("ats-active-module");
+switchModule(files[initial]?initial:"applications");
+</script>
+</body></html>
