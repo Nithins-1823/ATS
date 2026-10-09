@@ -3677,7 +3677,9 @@ function renderApplicationCard(card, candidate) {
 
         const notice = getField(candidate, "Notice Period") || "—";
 
-        const timestamp = formatTimestamp(getField(candidate, "Timestamp"));
+        const appliedDate = formatTimestamp(
+  getField(candidate, "Applied Date", "Applied Date ")
+);
 
         const hasResume = Boolean(getField(candidate, "Resume"));
 
@@ -3758,7 +3760,7 @@ function renderApplicationCard(card, candidate) {
             </div>
 
             <div class="info-value">
-              ${escapeHTML(timestamp)}
+              ${escapeHTML(appliedDate || "—")}
             </div>
 
           </div>
