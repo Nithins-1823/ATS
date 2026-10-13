@@ -2692,6 +2692,7 @@ const moduleLoaded = { applications:false, sourced:false, processed:false, inter
 let activeLoadRequest = 0;
 
 const PROCESSED_API_URL = "https://script.google.com/macros/s/AKfycbyCnQQimdvQcqF0gIopLZM2YzbvxnIOzN6VgyVXzJVec8OibaGNkousYH6m2eae9oUdHw/exec";
+const SOURCED_API_URL = "https://script.google.com/macros/s/AKfycbzPkzg4B0acMdZAxY-znY03zl2DR2xeizYCAphBq7g3S8XHlnqF0F0Ui1nQP8pEVX6KVQ/exec";
 
 const searchInput = document.getElementById("searchInput");
 const locationFilter = document.getElementById("locationFilter");
@@ -3402,6 +3403,20 @@ function renderCards() {
         renderPagination(data.length, start, end, totalPages);
       }
 
+/* Process -> Interview Schedule: opens the existing interview form; no interview date is invented. */
+function requestInterviewSchedule(candidate, button) {
+  button.disabled = true; button.textContent = "Opening…";
+  try {
+    window.parent.postMessage({type:"ats-schedule-candidate", candidate: {
+      "date": String(getField(candidate,"date") ?? ""), "candidate name": String(getField(candidate,"candidate name") ?? ""),
+      "phone number": String(getField(candidate,"phone number") ?? ""), "email": String(getField(candidate,"email") ?? ""),
+      "ID": String(getField(candidate,"ID") ?? ""), "role": String(getField(candidate,"Role","role") ?? ""),
+      "client": String(getField(candidate,"Client","client") ?? ""), "spoc": String(getField(candidate,"spoc") ?? "")
+    }}, "*");
+  } catch (err) { alert("Unable to open interview scheduling form."); }
+  finally { setTimeout(() => { button.disabled = false; button.textContent = "Schedule Interview"; }, 900); }
+}
+
 function renderCard(candidate) {
   const card = document.createElement("div");
   card.className = "candidate-card";
@@ -3426,6 +3441,9 @@ function renderCard(candidate) {
     });
     applyStageSelectClass(selectElement);
   });
+  const scheduleButton = document.createElement("button"); scheduleButton.type = "button"; scheduleButton.className = "move-stage-btn"; scheduleButton.textContent = "Schedule Interview";
+  scheduleButton.style.cssText = "margin:10px 0 0;padding:9px 13px;border:1px solid #2458a6;border-radius:8px;background:#edf4ff;color:#173f7a;font-weight:700;cursor:pointer;width:100%;";
+  scheduleButton.addEventListener("click", event => { event.stopPropagation(); requestInterviewSchedule(candidate, scheduleButton); }); card.appendChild(scheduleButton);
   cardsContainer.appendChild(card);
 }
 function renderPagination(total, start, end, totalPages) {
