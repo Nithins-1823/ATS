@@ -57,7 +57,14 @@ function switchModule(name){
   localStorage.setItem("ats-active-module",name);
 }
 tabs.forEach(t=>t.addEventListener("click",()=>switchModule(t.dataset.module)));
-window.addEventListener("message",event=>{ if(event.data?.type==="ats-switch-module" && files[event.data.module]) switchModule(event.data.module); });
+window.addEventListener("message",event=>{
+  if(event.data?.type==="ats-switch-module" && files[event.data.module]) switchModule(event.data.module);
+  if(event.data?.type==="ats-schedule-candidate" && event.data.candidate) {
+    switchModule("interviews");
+    const relay = () => { const target = frames.get("interviews"); if (target?.contentWindow) target.contentWindow.postMessage({type:"ats-prefill-interview",candidate:event.data.candidate}, "*"); };
+    setTimeout(relay, 250);
+  }
+});
 const initial=localStorage.getItem("ats-active-module");
 switchModule(files[initial]?initial:"applications");
 </script>
