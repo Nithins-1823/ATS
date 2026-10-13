@@ -3832,6 +3832,20 @@ function openAddInterviewModal() {
         document.body.style.overflow = "hidden";
       }
 
+/* Receives candidate data from Process and opens the existing validated schedule form. */
+window.addEventListener("message", event => {
+  if (event.data?.type !== "ats-prefill-interview" || !event.data.candidate) return;
+  const candidate = event.data.candidate;
+  openAddInterviewModal();
+  const fields = ["date", "candidate name", "phone number", "email", "ID", "role", "client", "spoc"];
+  for (const name of fields) {
+    const input = addInterviewForm.elements.namedItem(name);
+    if (input && candidate[name] !== undefined) input.value = candidate[name];
+  }
+  const message = document.getElementById("interviewFormMessage");
+  if (message) { message.className = "form-message show"; message.textContent = "Candidate details prefilled. Enter the required interview details, then save the schedule."; }
+});
+
 function closeInterviewScheduleModal() {
         addInterviewModal.classList.remove("show");
 
