@@ -2692,6 +2692,7 @@ const moduleLoaded = { applications:false, sourced:false, processed:false, inter
 let activeLoadRequest = 0;
 
 const SOURCED_API_URL = "https://script.google.com/macros/s/AKfycbzPkzg4B0acMdZAxY-znY03zl2DR2xeizYCAphBq7g3S8XHlnqF0F0Ui1nQP8pEVX6KVQ/exec";
+const PROCESSED_API_URL = "https://script.google.com/macros/s/AKfycbyCnQQimdvQcqF0gIopLZM2YzbvxnIOzN6VgyVXzJVec8OibaGNkousYH6m2eae9oUdHw/exec";
 
 const searchInput = document.getElementById("searchInput");
 const locationFilter = document.getElementById("locationFilter");
@@ -3402,6 +3403,46 @@ function renderCards() {
         renderPagination(data.length, start, end, totalPages);
       }
 
+/* Candidate stage transition: Sourced -> Processed. Preserve existing Processed data. */
+const processMoveLocks = new Set();
+async function moveSourcedToProcess(candidate, button) {
+  const email = String(getField(candidate,"email") ?? "").trim().toLowerCase();
+  const phone = String(getField(candidate,"phone number") ?? "").replace(/\D/g, "");
+  const role = String(getField(candidate,"Role") ?? "").trim();
+  const name = String(getField(candidate,"candidate name") ?? "").trim();
+  const key = [email,phone,role.toLowerCase()].join("|");
+  if (processMoveLocks.has(key)) return;
+  if (!name || !role) { alert("Candidate name and role are required before moving to Process."); return; }
+  processMoveLocks.add(key); const original = button.textContent; button.disabled = true; button.textContent = "Moving…";
+  try {
+    const response = await fetch(PROCESSED_API_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if (!response.ok) throw new Error("Could not verify Process records before moving.");
+    const result = await response.json(); if (!result.success) throw new Error(result.error || "Could not verify Process records.");
+    const rows = Array.isArray(result.data) ? result.data : [];
+    const duplicate = rows.some(row => {
+      const re=String(getField(row,"email") ?? "").trim().toLowerCase(); const rp=String(getField(row,"phone number") ?? "").replace(/\D/g, ""); const rr=String(getField(row,"Role") ?? "").trim().toLowerCase();
+      return (email && re===email && rr===role.toLowerCase()) || (phone.length>=7 && rp===phone && rr===role.toLowerCase());
+    });
+    if (duplicate) { alert("This candidate already exists in Process for this role. Existing Process information was not changed."); return; }
+    const mapped = {
+      "date": String(getField(candidate,"date") ?? new Date().toISOString().slice(0,10)),
+      "candidate name": name, "phone number": String(getField(candidate,"phone number") ?? ""),
+      "email": String(getField(candidate,"email") ?? ""), "ID": String(getField(candidate,"ID") ?? ""),
+      "Role": role, "Client": String(getField(candidate,"Client") ?? ""), "spoc": String(getField(candidate,"spoc") ?? ""),
+      "total experience": String(getField(candidate,"total experience") ?? ""), "Relevant experience": String(getField(candidate,"Relevant experience") ?? ""),
+      "current location": String(getField(candidate,"current location","Current Location") ?? ""),
+      "prefered location": String(getField(candidate,"prefered location","preferred location") ?? ""),
+      "current company": String(getField(candidate,"current company") ?? ""), "current ctc": String(getField(candidate,"current ctc") ?? ""),
+      "expected ctc": String(getField(candidate,"expected ctc") ?? ""), "last working date": String(getField(candidate,"last working date") ?? ""),
+      "FLAG": String(getField(candidate,"FLAG","flag") ?? ""), "INTERVIEW STATUS": String(getField(candidate,"INTERVIEW STATUS","interview status") ?? "")
+    };
+    const save = await fetch(PROCESSED_API_URL, {method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams({action:"addProcessed",data:JSON.stringify(mapped)})});
+    const saved = await save.json(); if (!saved.success) throw new Error(saved.error || "Process save failed.");
+    alert("Candidate moved to Process successfully. The Sourced record has been retained as history.");
+  } catch (err) { alert(err.message || "Unable to move candidate to Process. The Sourced record remains unchanged."); }
+  finally { processMoveLocks.delete(key); button.disabled = false; button.textContent = original; }
+}
+
 function renderCard(candidate) {
   const card = document.createElement("div");
   card.className = "candidate-card";
@@ -3426,6 +3467,11 @@ function renderCard(candidate) {
     });
     applyStageSelectClass(selectElement);
   });
+  if (activeModule === "sourced") {
+    const moveButton = document.createElement("button"); moveButton.type = "button"; moveButton.className = "move-stage-btn"; moveButton.textContent = "Move to Process";
+    moveButton.style.cssText = "margin:10px 0 0;padding:9px 13px;border:1px solid #16845d;border-radius:8px;background:#e9fff4;color:#075b3b;font-weight:700;cursor:pointer;width:100%;";
+    moveButton.addEventListener("click", event => { event.stopPropagation(); moveSourcedToProcess(candidate, moveButton); }); card.appendChild(moveButton);
+  }
   cardsContainer.appendChild(card);
 }
 function renderPagination(total, start, end, totalPages) {
