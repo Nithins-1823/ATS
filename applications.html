@@ -2516,6 +2516,11 @@ button::after,
     animation:none !important;
   }
 }
+  .custom-date-range{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+  .custom-date-range[hidden]{display:none!important}
+  .custom-date-range input,.custom-date-range button{min-width:0;max-width:100%;height:34px;padding:5px 8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);font:600 12px "Rajdhani",sans-serif}
+  .custom-date-range button{cursor:pointer;color:var(--primary)}
+  @media(max-width:900px){.custom-date-range{flex:1 1 100%}.custom-date-range input{flex:1 1 120px}}
 </style><style>
 /* Modular shell: the index owns navigation; this page owns one module only. */
 html,body{width:100%;height:100%;overflow:hidden}
@@ -2562,6 +2567,24 @@ body{min-height:100%;background-color:var(--bg-deep)}
       <option value="Original">Original</option>
       <option value="Duplicate">Duplicate</option>
     </select>
+    <select id="dateRangeFilter" aria-label="Filter applications by received date">
+      <option value="all">All time</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+      <option value="last3">Last 3 days</option>
+      <option value="last7">Last 7 days</option>
+      <option value="last15">Last 15 days</option>
+      <option value="last30">Last 30 days</option>
+      <option value="last3months">Last 3 months</option>
+      <option value="last6months">Last 6 months</option>
+      <option value="last12months">Last 12 months</option>
+      <option value="custom">Custom range</option>
+    </select>
+    <div id="customDateRange" class="custom-date-range" hidden>
+      <input id="customDateStart" type="date" aria-label="Start date">
+      <input id="customDateEnd" type="date" aria-label="End date">
+      <button id="applyCustomDateRange" type="button">Apply dates</button>
+    </div>
     <button class="refresh-btn" id="refreshButton">↻ Refresh</button>
     
   </section>
@@ -2686,6 +2709,11 @@ const locationFilter = document.getElementById("locationFilter");
 const positionFilter = document.getElementById("positionFilter");
 const experienceFilter = document.getElementById("experienceFilter");
 const flagFilter = document.getElementById("flagFilter");
+const dateRangeFilter = document.getElementById("dateRangeFilter");
+const customDateRange = document.getElementById("customDateRange");
+const customDateStart = document.getElementById("customDateStart");
+const customDateEnd = document.getElementById("customDateEnd");
+const applyCustomDateRange = document.getElementById("applyCustomDateRange");
 const refreshButton = document.getElementById("refreshButton");
 const cardsContainer = document.getElementById("cardsContainer");
 const paginationContainer = document.getElementById("paginationContainer");
@@ -3152,6 +3180,70 @@ function populateFilters() {
         APPLY FILTERS + SORT
     ========================================================== */
 
+function parseApplicationDate(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  // Google Sheets and the existing UI commonly use DD/MM/YYYY, sometimes with a time.
+  const localDMY = text.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (localDMY) {
+    let year = Number(localDMY[3]);
+    if (year < 100) year += 2000;
+    const date = new Date(year, Number(localDMY[2])-1, Number(localDMY[1]), Number(localDMY[4]||0), Number(localDMY[5]||0), Number(localDMY[6]||0));
+    if (date.getFullYear() !== year || date.getMonth() !== Number(localDMY[2])-1 || date.getDate() !== Number(localDMY[1])) return null;
+    return date;
+  }
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getApplicationReceivedDate(candidate) {
+  // Timestamp is the field already used by this module to sort received applications.
+  const value = getField(candidate, "Timestamp", "timestamp", "Received Timestamp", "Received Date", "Applied Date", "Applied Date ");
+  return parseApplicationDate(value);
+}
+
+function getDateRangeBounds() {
+  const selected = dateRangeFilter ? dateRangeFilter.value : "all";
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(todayStart);
+  tomorrow.setDate(tomorrow.getDate()+1);
+  if (!selected || selected === "all") return {allTime:true};
+  if (selected === "custom") {
+    if (!customDateStart.value || !customDateEnd.value) return {allTime:true, invalid:true, message:"Choose both a start and end date to apply a custom range."};
+    const startParts = customDateStart.value.split("-").map(Number);
+    const endParts = customDateEnd.value.split("-").map(Number);
+    const start = new Date(startParts[0], startParts[1]-1, startParts[2]);
+    const endDay = new Date(endParts[0], endParts[1]-1, endParts[2]);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(endDay.getTime()) || start > endDay) return {allTime:true, invalid:true, message:"Invalid custom date range. Start date must be on or before end date."};
+    endDay.setDate(endDay.getDate()+1);
+    return {start, end:endDay};
+  }
+  if (selected === "today") return {start:todayStart,end:tomorrow};
+  if (selected === "yesterday") { const start=new Date(todayStart); start.setDate(start.getDate()-1); return {start,end:todayStart}; }
+  if (selected.startsWith("last")) {
+    const start = new Date(todayStart);
+    const days = {last3:3,last7:7,last15:15,last30:30};
+    if (days[selected]) start.setDate(start.getDate()-(days[selected]-1));
+    else {
+      const months = {last3months:3,last6months:6,last12months:12}[selected];
+      if (!months) return {allTime:true};
+      const day = start.getDate();
+      start.setDate(1); start.setMonth(start.getMonth()-months); 
+      const lastDay = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
+      start.setDate(Math.min(day,lastDay));
+    }
+    return {start,end:tomorrow};
+  }
+  return {allTime:true};
+}
+
 function applyFilters() {
         const search = searchInput.value.trim().toLowerCase();
 
@@ -3167,8 +3259,16 @@ function applyFilters() {
             : "";
 
         const source = getActiveAllData();
+        const dateBounds = activeModule === "applications" ? getDateRangeBounds() : {allTime:true};
+        if (activeModule === "applications" && dateBounds.invalid) {
+          if (error) { error.textContent = dateBounds.message; error.style.display = "block"; }
+        } else if (error) { error.style.display = "none"; }
 
         const filtered = source.filter((candidate) => {
+          if (activeModule === "applications" && !dateBounds.allTime && !dateBounds.invalid) {
+            const received = getApplicationReceivedDate(candidate);
+            if (!received || received < dateBounds.start || received >= dateBounds.end) return false;
+          }
           let matchesSearch = true;
 
           let matchesLocation = true;
@@ -3424,6 +3524,58 @@ function renderCards() {
         renderPagination(data.length, start, end, totalPages);
       }
 
+const SOURCED_API_URL = "https://script.google.com/macros/s/AKfycbzPkzg4B0acMdZAxY-znY03zl2DR2xeizYCAphBq7g3S8XHlnqF0F0Ui1nQP8pEVX6KVQ/exec";
+
+/* Candidate stage transition: Applications -> Sourced.
+   Mapping is intentionally explicit because the destination has a different schema. */
+const candidateMoveLocks = new Set();
+function moveIdentityKey(record, stage) {
+  const email = String(getField(record, "Email", "email") ?? "").trim().toLowerCase();
+  const phone = String(getField(record, "Contact Number", "phone number", "contact") ?? "").replace(/\D/g, "");
+  const role = String(getField(record, "Position applied for", "Role", "role") ?? "").trim().toLowerCase();
+  return [email, phone, role].join("|");
+}
+async function moveApplicationToSourced(candidate, button) {
+  const key = moveIdentityKey(candidate, "applications");
+  if (candidateMoveLocks.has(key)) return;
+  const name = String(getField(candidate, "Full Name") ?? "").trim();
+  const role = String(getField(candidate, "Position applied for") ?? "").trim();
+  if (!name || !role) { alert("Candidate name and position are required before moving to Sourced."); return; }
+  candidateMoveLocks.add(key); const original = button.textContent; button.disabled = true; button.textContent = "Moving…";
+  try {
+    const response = await fetch(SOURCED_API_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if (!response.ok) throw new Error("Could not verify Sourced records before moving.");
+    const existingResult = await response.json();
+    if (!existingResult.success) throw new Error(existingResult.error || "Could not verify Sourced records.");
+    const rows = Array.isArray(existingResult.data) ? existingResult.data : [];
+    const email = String(getField(candidate,"Email") ?? "").trim().toLowerCase();
+    const phone = String(getField(candidate,"Contact Number") ?? "").replace(/\D/g, "");
+    const duplicate = rows.some(row => {
+      const re = String(getField(row,"email") ?? "").trim().toLowerCase();
+      const rp = String(getField(row,"phone number") ?? "").replace(/\D/g, "");
+      const rr = String(getField(row,"Role") ?? "").trim().toLowerCase();
+      return (email && re === email && rr === role.toLowerCase()) || (phone.length >= 7 && rp === phone && rr === role.toLowerCase());
+    });
+    if (duplicate) { alert("This candidate already appears in Sourced for this role. No new record was created."); return; }
+    const mapped = {
+      "date": new Date().toISOString().slice(0,10),
+      "candidate name": name,
+      "phone number": String(getField(candidate,"Contact Number") ?? ""),
+      "email": String(getField(candidate,"Email") ?? ""),
+      "Role": role,
+      "total experience": String(getField(candidate,"Years of experience") ?? ""),
+      "current location": String(getField(candidate,"Location") ?? ""),
+      "last working date": String(getField(candidate,"Last working day") ?? ""),
+      "FLAG": String(getField(candidate,"FLAG","flag") ?? "")
+    };
+    const save = await fetch(SOURCED_API_URL, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"}, body:new URLSearchParams({action:"addSourced", data:JSON.stringify(mapped)})});
+    const result = await save.json();
+    if (!result.success) throw new Error(result.error || "Sourced save failed.");
+    alert("Candidate moved to Sourced successfully. The original application has been retained as history.");
+  } catch (err) { alert(err.message || "Unable to move candidate to Sourced. The application remains unchanged."); }
+  finally { candidateMoveLocks.delete(key); button.disabled = false; button.textContent = original; }
+}
+
 function renderCard(candidate) {
   const card = document.createElement("div");
   card.className = "candidate-card";
@@ -3447,6 +3599,11 @@ function renderCard(candidate) {
     });
     applyFlagSelectClass(flagSelect);
   }
+  const moveButton = document.createElement("button");
+  moveButton.type = "button"; moveButton.className = "move-stage-btn"; moveButton.textContent = "Move to Sourced";
+  moveButton.style.cssText = "margin:10px 0 0;padding:9px 13px;border:1px solid #16845d;border-radius:8px;background:#e9fff4;color:#075b3b;font-weight:700;cursor:pointer;width:100%;";
+  moveButton.addEventListener("click", event => { event.stopPropagation(); moveApplicationToSourced(candidate, moveButton); });
+  card.appendChild(moveButton);
   cardsContainer.appendChild(card);
 }
 function renderPagination(total, start, end, totalPages) {
@@ -3678,7 +3835,7 @@ function renderApplicationCard(card, candidate) {
         const notice = getField(candidate, "Notice Period") || "—";
 
         const appliedDate = formatTimestamp(
-  getField(candidate, "Applied Date", "Applied Date ")
+  getField(candidate, "Applied Date", "Applied Date ", "Timestamp")
 );
 
         const hasResume = Boolean(getField(candidate, "Resume"));
@@ -3838,13 +3995,26 @@ async function loadApplications() {
             { cache: "no-store" },
           );
 
-          const result = await response.json();
-
-          if (!result.success) {
-            throw new Error(result.error || "Unable to load applications.");
+          if (!response.ok) {
+            throw new Error(`Applications API request failed (${response.status} ${response.statusText}).`);
           }
-
-          allApplications = Array.isArray(result.data) ? result.data : [];
+          const contentType = response.headers.get("content-type") || "";
+          let result;
+          try { result = await response.json(); }
+          catch (_) { throw new Error(`Applications API returned an unreadable response${contentType ? ` (${contentType})` : ""}. Check the Apps Script deployment and API response.`); }
+          if (result && result.success === false) {
+            throw new Error(result.error || "Applications API reported that the request was unsuccessful.");
+          }
+          const records = Array.isArray(result) ? result
+            : Array.isArray(result?.data) ? result.data
+            : Array.isArray(result?.results) ? result.results
+            : Array.isArray(result?.applications) ? result.applications
+            : Array.isArray(result?.records) ? result.records
+            : null;
+          if (!records) {
+            throw new Error("Applications API response did not contain an application array (expected an array, data, results, applications, or records). Check the API response structure.");
+          }
+          allApplications = records;
           moduleLoaded.applications = true;
         } catch (err) {
           moduleLoaded.applications = false;
@@ -4020,6 +4190,19 @@ async function saveEditApplication(event) {
       positionFilter.addEventListener("change", applyFilters);
       experienceFilter.addEventListener("change", applyFilters);
       flagFilter.addEventListener("change", applyFilters);
+      dateRangeFilter.addEventListener("change", () => {
+        customDateRange.hidden = dateRangeFilter.value !== "custom";
+        if (dateRangeFilter.value !== "custom") applyFilters();
+      });
+      applyCustomDateRange.addEventListener("click", () => {
+        const bounds = getDateRangeBounds();
+        if (bounds.invalid) {
+          error.textContent = bounds.message;
+          error.style.display = "block";
+          return;
+        }
+        applyFilters();
+      });
 
       refreshButton.addEventListener("click", async () => {
         refreshButton.disabled = true;
