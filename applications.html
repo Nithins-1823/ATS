@@ -298,6 +298,14 @@
 
       .toolbar select { flex: 0 1 190px; width: 190px; min-width: 0; text-overflow: ellipsis; overflow: hidden; }
       .toolbar #flagFilter { flex: 0 1 150px; width: 150px; min-width: 0; }
+      .toolbar #locationFilter { flex: 0 1 190px; width: 190px; min-width: 0; }
+      .toolbar #experienceMinFilter, .toolbar #experienceMaxFilter {
+        flex: 0 1 105px; width: 105px; min-width: 0; padding: 12px 10px;
+        background: rgba(0,0,0,.7); border: 1px solid var(--border); border-bottom: 2px solid var(--primary);
+        color: #fff; font: 800 13px "Rajdhani",sans-serif; outline: none;
+      }
+      .toolbar #experienceMinFilter:focus, .toolbar #experienceMaxFilter:focus { border-color: var(--secondary); background: var(--secondary-dim); }
+      .toolbar #locationFilter option:checked { background: var(--secondary); color: #000; }
       .refresh-btn { flex: 0 0 auto; white-space: nowrap; }
 
       .search-box input, select, button { font-family: "Rajdhani", sans-serif; letter-spacing: 1px; }
@@ -2516,15 +2524,299 @@ button::after,
     animation:none !important;
   }
 }
+  .custom-date-range{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+  .custom-date-range[hidden]{display:none!important}
+  .custom-date-range input,.custom-date-range button{min-width:0;max-width:100%;height:34px;padding:5px 8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);font:600 12px "Rajdhani",sans-serif}
+  .custom-date-range button{cursor:pointer;color:var(--primary)}
+  @media(max-width:900px){.custom-date-range{flex:1 1 100%}.custom-date-range input{flex:1 1 120px}}
+
+
+/* FIX: keep the location dropdown above candidate cards and prevent toolbar clipping. */
+.toolbar {
+  position: relative !important;
+  z-index: 1000 !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+}
+.toolbar .location-filter-wrap {
+  position: relative !important;
+  z-index: 1001 !important;
+}
+.toolbar .location-dropdown-panel {
+  position: absolute !important;
+  z-index: 10000 !important;
+  top: calc(100% + 5px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  min-width: 190px;
+  background: #03090e !important;
+  opacity: 1 !important;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+
+
+/* FIX: keep the location dropdown above candidate cards and prevent toolbar clipping. */
+.toolbar {
+  position: relative !important;
+  z-index: 1000 !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+}
+.toolbar .location-filter-wrap {
+  position: relative !important;
+  z-index: 1001 !important;
+}
+.toolbar .location-dropdown-panel {
+  position: absolute !important;
+  z-index: 10000 !important;
+  top: calc(100% + 5px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  min-width: 190px;
+  background: #03090e !important;
+  opacity: 1 !important;
+  visibility: visible;
+  pointer-events: auto;
+}
+
 </style><style>
 /* Modular shell: the index owns navigation; this page owns one module only. */
 html,body{width:100%;height:100%;overflow:hidden}
 body{min-height:100%;background-color:var(--bg-deep)}
-.container.module-page{height:100vh !important;max-width:1800px;padding:18px 28px 22px}
+.container.module-page{height:110vh !important;max-width:1800px;padding:18px 28px 5px}
 .module-page .stats-bar{margin-bottom:12px;padding:12px 22px}
 .module-page .toolbar{margin-bottom:14px;padding:11px 18px}
 .module-page .applications-scroll{padding-bottom:18px}
 @media(max-width:600px){.container.module-page{padding:12px}.module-page .stats-bar{padding:12px}.module-page .toolbar{padding:12px}}
+
+/* APPLICATION FILTER BAR: fixed, non-overlapping single desktop row */
+.toolbar{
+  display:grid !important;
+  grid-template-columns:minmax(170px,1.45fr) minmax(145px,1.05fr) minmax(135px,.95fr) minmax(190px,1.25fr) minmax(120px,.8fr) minmax(145px,1fr) minmax(110px,.75fr) !important;
+  align-items:center !important;
+  gap:10px !important;
+  padding:12px 16px !important;
+  width:100% !important;
+  min-width:0 !important;
+  flex-wrap:nowrap !important;
+}
+.toolbar > *{min-width:0 !important; width:100% !important;}
+.toolbar .search-box{min-width:0 !important; width:100% !important; flex:none !important;}
+.toolbar .search-box input{width:100% !important; padding-left:88px !important;}
+.toolbar select,.toolbar #flagFilter,.toolbar #locationFilter{
+  min-width:0 !important; width:100% !important; max-width:100% !important;
+  padding:11px 9px !important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.toolbar #locationFilter{height:47px;}
+.experience-filter-group{display:flex; flex-direction:column; gap:6px; min-width:0; width:100%;}
+.experience-filter-group > select{width:100% !important;}
+.custom-experience-range{display:flex; gap:6px; min-width:0; width:100%;}
+.custom-experience-range[hidden]{display:none !important;}
+.toolbar .custom-experience-range input{
+  width:50% !important; min-width:0 !important; flex:1 1 50%;
+  padding:8px 7px !important; background:rgba(0,0,0,.7);
+  border:1px solid var(--border); border-bottom:2px solid var(--primary);
+  color:#fff; font:800 13px "Rajdhani",sans-serif;
+}
+.toolbar #customDateRange{grid-column:6 / span 1; display:flex; gap:5px; min-width:0; width:100%;}
+.toolbar #customDateRange[hidden]{display:none !important;}
+.toolbar #customDateRange input{width:50%; min-width:0;}
+.toolbar .refresh-btn{min-width:0 !important; width:100% !important; white-space:nowrap; padding:11px 8px !important;}
+@media(max-width:1100px){
+ .toolbar{grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:7px !important; padding:10px !important;}
+ .toolbar .search-box{grid-column:span 2;}
+}
+@media(max-width:760px){
+ .toolbar{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+ .toolbar .search-box{grid-column:1 / -1;}
+ .toolbar #customDateRange{grid-column:1 / -1;}
+}
+@media(max-width:420px){.toolbar{grid-template-columns:minmax(0,1fr) !important;}}
+
+
+/* FINAL FILTER BAR FIX: compact single-row desktop layout; no hidden controls reserve space. */
+.toolbar{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.35fr) minmax(130px,1fr) minmax(125px,.9fr) minmax(150px,1fr) minmax(115px,.8fr) minmax(135px,.95fr) minmax(110px,.8fr) !important;
+  grid-auto-rows:minmax(44px,auto) !important;
+  align-items:center !important;
+  justify-content:stretch !important;
+  gap:10px !important;
+  padding:10px 14px !important;
+  min-height:0 !important;
+  height:auto !important;
+  overflow:visible !important;
+}
+.toolbar > *{min-width:0 !important; width:100% !important; margin:0 !important;}
+.toolbar .search-box{grid-column:auto !important; min-width:0 !important; width:100% !important; align-self:center !important;}
+.toolbar .search-box input{width:100% !important; min-width:0 !important; padding:11px 8px 11px 86px !important;}
+.toolbar select{
+  display:block !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  min-width:0 !important;
+  width:100% !important;
+  max-width:100% !important;
+  padding:10px 8px !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+.toolbar #locationFilter{height:44px !important;}
+.toolbar .experience-filter-group{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  gap:6px !important;
+  min-width:0 !important;
+  width:100% !important;
+}
+.toolbar .experience-filter-group > select{flex:1 1 100% !important; width:100% !important;}
+.toolbar .custom-experience-range{display:flex; gap:5px; min-width:0; width:100%;}
+.toolbar .custom-experience-range[hidden],
+.toolbar #customDateRange[hidden],
+.toolbar [hidden]{display:none !important;}
+.toolbar .custom-experience-range input{
+  flex:1 1 0 !important; width:50% !important; min-width:0 !important;
+  height:38px !important; padding:7px 6px !important;
+  background:rgba(0,0,0,.7) !important; border:1px solid var(--border) !important;
+  border-bottom:2px solid var(--primary) !important; color:#fff !important;
+  font:800 12px "Rajdhani",sans-serif !important;
+}
+.toolbar #customDateRange{
+  grid-column:6 !important;
+  display:flex !important; align-items:center !important; gap:5px !important;
+  min-width:0 !important; width:100% !important;
+}
+.toolbar #customDateRange input{flex:1 1 0 !important; min-width:0 !important; width:50% !important; height:38px !important;}
+.toolbar #customDateRange button{display:none !important;}
+.toolbar .refresh-btn{height:44px !important; min-width:0 !important; width:100% !important; padding:9px 6px !important; white-space:nowrap !important;}
+@media(max-width:1100px){
+ .toolbar{grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:7px !important; padding:9px !important;}
+ .toolbar .search-box{grid-column:auto !important;}
+}
+@media(max-width:760px){
+ .toolbar{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+ .toolbar .search-box{grid-column:1 / -1 !important;}
+ .toolbar #customDateRange{grid-column:1 / -1 !important;}
+ .toolbar .experience-filter-group{grid-column:auto !important;}
+}
+@media(max-width:420px){
+ .toolbar{grid-template-columns:minmax(0,1fr) !important;}
+ .toolbar .search-box,.toolbar #customDateRange{grid-column:1 !important;}
+}
+
+
+
+/* LOCATION FILTER FIX:
+   Keep the multi-select visually consistent with the other toolbar filters.
+   Explicit background/color rules override native select styling. */
+.toolbar #locationFilter {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  color: var(--secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom: 2px solid var(--primary) !important;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease !important;
+}
+.toolbar #locationFilter:hover,
+.toolbar #locationFilter:focus {
+  background-color: var(--secondary-dim) !important;
+  border-color: var(--secondary) !important;
+  color: #fff !important;
+  outline: none !important;
+  box-shadow: 0 0 15px var(--secondary-glow) !important;
+}
+.toolbar #locationFilter option {
+  background-color: #03090e;
+  color: var(--secondary);
+}
+.toolbar #locationFilter option:checked {
+  background-color: var(--secondary) !important;
+  color: #000 !important;
+}
+
+
+/* Searchable location filter: isolated additions; existing filter IDs and behavior remain intact. */
+.toolbar .location-filter-wrap{display:flex;flex-direction:column;gap:5px;min-width:0;width:100%;}
+.toolbar .location-search-input{width:100%;min-width:0;height:30px;padding:5px 8px;background:rgba(0,0,0,.7);border:1px solid var(--border);border-bottom:1px solid var(--primary);color:#fff;font:700 12px "Rajdhani",sans-serif;outline:none;}
+.toolbar .location-search-input:focus{border-color:var(--secondary);background:var(--secondary-dim);}
+.toolbar .location-filter-wrap #locationFilter{height:34px !important;min-height:34px !important;padding:5px 8px !important;}
+@media(max-width:760px){.toolbar .location-filter-wrap{grid-column:auto;}}
+
+/* Searchable location dropdown: search stays inside the open panel. */
+.toolbar .location-filter-wrap{position:relative;display:block;min-width:0;width:100%;}
+.toolbar .location-dropdown-toggle{width:100%;min-width:0;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toolbar .location-dropdown-panel{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:5000;background:#03090e;border:1px solid var(--secondary);box-shadow:0 10px 24px rgba(0,0,0,.75);padding:7px;max-height:300px;display:flex;flex-direction:column;gap:6px;}
+.toolbar .location-dropdown-panel[hidden]{display:none !important;}
+.toolbar .location-search-input{flex:0 0 auto;height:34px;padding:7px 9px;background:#000;border:1px solid var(--border);border-bottom:2px solid var(--primary);color:#fff;font:700 13px "Rajdhani",sans-serif;outline:none;}
+.toolbar .location-search-input:focus{border-color:var(--secondary);}
+.toolbar .location-options-list{overflow-y:auto;max-height:245px;}
+.toolbar .location-option-row{display:flex;align-items:center;gap:8px;padding:6px 4px;color:var(--secondary);font-size:13px;letter-spacing:1px;cursor:pointer;}
+.toolbar .location-option-row:hover{background:var(--secondary-dim);color:#fff;}
+.toolbar .location-option-row input{accent-color:var(--secondary);flex:0 0 auto;}
+.toolbar .location-no-results{padding:9px 4px;color:var(--text-muted);font-size:12px;}
+.toolbar #locationFilter[hidden]{display:none !important;}
+
+/* FILTER FOCUS FIX
+   Keep toolbar filters dark after click/focus, not only while hovered.
+   Native select popups may still use OS/browser-specific menu styling. */
+.toolbar select#positionFilter,
+.toolbar select#experienceFilter,
+.toolbar select#flagFilter,
+.toolbar select#dateRangeFilter {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: rgba(0, 0, 0, 0.88) !important;
+  background-color: rgba(0, 0, 0, 0.88) !important;
+  color: var(--secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom: 2px solid var(--primary) !important;
+  outline: none !important;
+  box-shadow: none;
+  color-scheme: dark;
+  transition: background-color .18s ease, color .18s ease,
+              border-color .18s ease, box-shadow .18s ease !important;
+}
+.toolbar select#positionFilter:hover,
+.toolbar select#experienceFilter:hover,
+.toolbar select#flagFilter:hover,
+.toolbar select#dateRangeFilter:hover,
+.toolbar select#positionFilter:focus,
+.toolbar select#experienceFilter:focus,
+.toolbar select#flagFilter:focus,
+.toolbar select#dateRangeFilter:focus,
+.toolbar select#positionFilter:active,
+.toolbar select#experienceFilter:active,
+.toolbar select#flagFilter:active,
+.toolbar select#dateRangeFilter:active {
+  background: rgba(0, 0, 0, 0.88) !important;
+  background-color: rgba(0, 0, 0, 0.88) !important;
+  color: #fff !important;
+  border-color: var(--secondary) !important;
+  outline: none !important;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.14) !important;
+}
+.toolbar select#positionFilter option,
+.toolbar select#experienceFilter option,
+.toolbar select#flagFilter option,
+.toolbar select#dateRangeFilter option {
+  background-color: #03090e;
+  color: #00e5ff;
+}
+.toolbar select#positionFilter option:checked,
+.toolbar select#experienceFilter option:checked,
+.toolbar select#flagFilter option:checked,
+.toolbar select#dateRangeFilter option:checked {
+  background-color: #00e5ff;
+  color: #000;
+}
+
 </style></head><body>
 <div class="matrix-rain" id="matrixRainContainer"></div>
 
@@ -2542,26 +2834,58 @@ body{min-height:100%;background-color:var(--bg-deep)}
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Search candidates database..." autocomplete="off" />
     </div>
-    <select id="locationFilter" >
-      <option value="">All Locations</option>
-    </select>
+    <div class="location-filter-wrap" id="locationFilterWrap">
+      <button type="button" id="locationDropdownToggle" class="location-dropdown-toggle" aria-expanded="false">ALL LOCATIONS <span aria-hidden="true">▾</span></button>
+      <div id="locationDropdownPanel" class="location-dropdown-panel" hidden>
+        <input type="text" id="locationSearchInput" class="location-search-input" placeholder="Search locations..." autocomplete="off" aria-label="Search locations">
+        <div id="locationOptionsList" class="location-options-list"></div>
+      </div>
+      <select id="locationFilter" multiple size="1" aria-label="Filter by one or more locations" title="Select one or more locations" hidden>
+        <option value="">All Locations</option>
+      </select>
+    </div>
     <select id="positionFilter">
       <option value="">All Positions</option>
     </select>
-    <select id="experienceFilter" >
-      <option value="">All Experience</option>
-       <option value="0-4">0–4 Years</option>
-		<option value="4-6">4–6 Years</option>
-  <option value="6-9">6–9 Years</option>
-  <option value="9-12">9–12 Years</option>
-  <option value="12-16">12–16 Years</option>
-  <option value="16-20">16–20 Years</option>
-    </select>
+    <div class="experience-filter-group">
+      <select id="experienceFilter" aria-label="Filter by experience">
+        <option value="">All Experience</option>
+        <option value="0-4">0–4 Years</option>
+        <option value="4-6">4–6 Years</option>
+        <option value="6-9">6–9 Years</option>
+        <option value="9-12">9–12 Years</option>
+        <option value="12-16">12–16 Years</option>
+        <option value="16-20">16–20 Years</option>
+        <option value="custom">Custom years…</option>
+      </select>
+      <div id="customExperienceRange" class="custom-experience-range" hidden>
+        <input id="experienceMinFilter" type="number" min="0" step="0.5" placeholder="Min" aria-label="Minimum years of experience">
+        <input id="experienceMaxFilter" type="number" min="0" step="0.5" placeholder="Max" aria-label="Maximum years of experience">
+      </div>
+    </div>
     <select id="flagFilter" >
       <option value="">All Flags</option>
       <option value="Original">Original</option>
       <option value="Duplicate">Duplicate</option>
     </select>
+    <select id="dateRangeFilter" aria-label="Filter applications by received date">
+      <option value="all">All time</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+      <option value="last3">Last 3 days</option>
+      <option value="last7">Last 7 days</option>
+      <option value="last15">Last 15 days</option>
+      <option value="last30">Last 30 days</option>
+      <option value="last3months">Last 3 months</option>
+      <option value="last6months">Last 6 months</option>
+      <option value="last12months">Last 12 months</option>
+      <option value="custom">Custom range</option>
+    </select>
+    <div id="customDateRange" class="custom-date-range" hidden>
+      <input id="customDateStart" type="date" aria-label="Start date">
+      <input id="customDateEnd" type="date" aria-label="End date">
+      <button id="applyCustomDateRange" type="button">Apply dates</button>
+    </div>
     <button class="refresh-btn" id="refreshButton">↻ Refresh</button>
     
   </section>
@@ -2681,11 +3005,21 @@ let activeLoadRequest = 0;
 
 const APPLICATIONS_API_URL = "https://script.google.com/macros/s/AKfycbxSUuyQ0z42XzmvB-JHI8Ptk_r2mvVaiM97u3BTXiiTiK1WvnYSSWai2TbHxY3z35SnjA/exec";
 
+const SOURCED_API_URL = "https://script.google.com/macros/s/AKfycbzPkzg4B0acMdZAxY-znY03zl2DR2xeizYCAphBq7g3S8XHlnqF0F0Ui1nQP8pEVX6KVQ/exec";
+
 const searchInput = document.getElementById("searchInput");
 const locationFilter = document.getElementById("locationFilter");
+const locationSearchInput = document.getElementById("locationSearchInput");
+const experienceMinFilter = document.getElementById("experienceMinFilter");
+const experienceMaxFilter = document.getElementById("experienceMaxFilter");
 const positionFilter = document.getElementById("positionFilter");
 const experienceFilter = document.getElementById("experienceFilter");
 const flagFilter = document.getElementById("flagFilter");
+const dateRangeFilter = document.getElementById("dateRangeFilter");
+const customDateRange = document.getElementById("customDateRange");
+const customDateStart = document.getElementById("customDateStart");
+const customDateEnd = document.getElementById("customDateEnd");
+const applyCustomDateRange = document.getElementById("applyCustomDateRange");
 const refreshButton = document.getElementById("refreshButton");
 const cardsContainer = document.getElementById("cardsContainer");
 const paginationContainer = document.getElementById("paginationContainer");
@@ -2872,28 +3206,56 @@ function formatDate(value) {
       }
 
 function formatTimestamp(value) {
-        if (!value) {
+        if (value === null || value === undefined || value === "") {
           return "—";
         }
 
+        // Google Sheets may return timestamps such as "26/10/2026 18:30".
+        // Parse this format explicitly instead of relying on browser-specific Date parsing.
         const text = String(value).trim();
-
         if (!text) {
           return "—";
         }
 
-        const date = new Date(text);
+        const localMatch = text.match(
+          /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+        );
 
+        if (localMatch) {
+          let year = Number(localMatch[3]);
+          if (year < 100) year += 2000;
+
+          const day = Number(localMatch[1]);
+          const month = Number(localMatch[2]);
+          const hour = Number(localMatch[4] || 0);
+          const minute = Number(localMatch[5] || 0);
+          const second = Number(localMatch[6] || 0);
+          const date = new Date(year, month - 1, day, hour, minute, second);
+
+          if (
+            date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day &&
+            hour <= 23 && minute <= 59 && second <= 59
+          ) {
+            return (
+              String(day).padStart(2, "0") + "/" +
+              String(month).padStart(2, "0") + "/" +
+              year + " " +
+              String(hour).padStart(2, "0") + ":" +
+              String(minute).padStart(2, "0")
+            );
+          }
+        }
+
+        // Also support ISO timestamps and other browser-recognized date values.
+        const date = new Date(text);
         if (!Number.isNaN(date.getTime())) {
           return (
-            String(date.getDate()).padStart(2, "0") +
-            "/" +
-            String(date.getMonth() + 1).padStart(2, "0") +
-            "/" +
-            date.getFullYear() +
-            " " +
-            String(date.getHours()).padStart(2, "0") +
-            ":" +
+            String(date.getDate()).padStart(2, "0") + "/" +
+            String(date.getMonth() + 1).padStart(2, "0") + "/" +
+            date.getFullYear() + " " +
+            String(date.getHours()).padStart(2, "0") + ":" +
             String(date.getMinutes()).padStart(2, "0")
           );
         }
@@ -3060,7 +3422,7 @@ function getActiveData() {
 function populateFilters() {
         const data = getActiveAllData();
 
-        const currentLocation = locationFilter.value;
+        const currentLocations = [...locationFilter.selectedOptions].map(option => option.value).filter(Boolean);
 
         const currentPosition = positionFilter.value;
 
@@ -3139,9 +3501,13 @@ function populateFilters() {
             )
             .join("");
 
-        if (locations.includes(currentLocation)) {
-          locationFilter.value = currentLocation;
-        }
+        [...locationFilter.options].forEach(option => {
+          option.selected = option.value === ""
+            ? currentLocations.length === 0
+            : currentLocations.includes(option.value) && locations.includes(option.value);
+        });
+        if (typeof renderLocationOptions === "function") renderLocationOptions();
+        if (typeof updateLocationDropdownLabel === "function") updateLocationDropdownLabel();
 
         if (positions.includes(currentPosition)) {
           positionFilter.value = currentPosition;
@@ -3152,10 +3518,81 @@ function populateFilters() {
         APPLY FILTERS + SORT
     ========================================================== */
 
+function parseApplicationDate(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  // Google Sheets and the existing UI commonly use DD/MM/YYYY, sometimes with a time.
+  const localDMY = text.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (localDMY) {
+    let year = Number(localDMY[3]);
+    if (year < 100) year += 2000;
+    const date = new Date(year, Number(localDMY[2])-1, Number(localDMY[1]), Number(localDMY[4]||0), Number(localDMY[5]||0), Number(localDMY[6]||0));
+    if (date.getFullYear() !== year || date.getMonth() !== Number(localDMY[2])-1 || date.getDate() !== Number(localDMY[1])) return null;
+    return date;
+  }
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getApplicationReceivedDate(candidate) {
+  // Timestamp is the field already used by this module to sort received applications.
+  const value = getField(candidate, "Timestamp", "timestamp", "Received Timestamp", "Received Date", "Applied Date", "Applied Date ");
+  return parseApplicationDate(value);
+}
+
+function getDateRangeBounds() {
+  const selected = dateRangeFilter ? dateRangeFilter.value : "all";
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(todayStart);
+  tomorrow.setDate(tomorrow.getDate()+1);
+  if (!selected || selected === "all") return {allTime:true};
+  if (selected === "custom") {
+    if (!customDateStart.value || !customDateEnd.value) return {allTime:true, invalid:true, message:"Choose both a start and end date to apply a custom range."};
+    const startParts = customDateStart.value.split("-").map(Number);
+    const endParts = customDateEnd.value.split("-").map(Number);
+    const start = new Date(startParts[0], startParts[1]-1, startParts[2]);
+    const endDay = new Date(endParts[0], endParts[1]-1, endParts[2]);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(endDay.getTime()) || start > endDay) return {allTime:true, invalid:true, message:"Invalid custom date range. Start date must be on or before end date."};
+    endDay.setDate(endDay.getDate()+1);
+    return {start, end:endDay};
+  }
+  if (selected === "today") return {start:todayStart,end:tomorrow};
+  if (selected === "yesterday") { const start=new Date(todayStart); start.setDate(start.getDate()-1); return {start,end:todayStart}; }
+  if (selected.startsWith("last")) {
+    const start = new Date(todayStart);
+    const days = {last3:3,last7:7,last15:15,last30:30};
+    if (days[selected]) start.setDate(start.getDate()-(days[selected]-1));
+    else {
+      const months = {last3months:3,last6months:6,last12months:12}[selected];
+      if (!months) return {allTime:true};
+      const day = start.getDate();
+      start.setDate(1); start.setMonth(start.getMonth()-months); 
+      const lastDay = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
+      start.setDate(Math.min(day,lastDay));
+    }
+    return {start,end:tomorrow};
+  }
+  return {allTime:true};
+}
+
 function applyFilters() {
         const search = searchInput.value.trim().toLowerCase();
 
-        const location = locationFilter.value.trim().toLowerCase();
+        const locations = [...locationFilter.selectedOptions]
+          .map(option => option.value.trim().toLowerCase())
+          .filter(Boolean);
+        const customMinRaw = experienceMinFilter.value.trim();
+        const customMaxRaw = experienceMaxFilter.value.trim();
+        const customMin = customMinRaw === "" ? null : Number(customMinRaw);
+        const customMax = customMaxRaw === "" ? null : Number(customMaxRaw);
+        const hasCustomExperience = customMin !== null || customMax !== null;
 
         const position = positionFilter.value.trim().toLowerCase();
 
@@ -3167,8 +3604,16 @@ function applyFilters() {
             : "";
 
         const source = getActiveAllData();
+        const dateBounds = activeModule === "applications" ? getDateRangeBounds() : {allTime:true};
+        if (activeModule === "applications" && dateBounds.invalid) {
+          if (error) { error.textContent = dateBounds.message; error.style.display = "block"; }
+        } else if (error) { error.style.display = "none"; }
 
         const filtered = source.filter((candidate) => {
+          if (activeModule === "applications" && !dateBounds.allTime && !dateBounds.invalid) {
+            const received = getApplicationReceivedDate(candidate);
+            if (!received || received < dateBounds.start || received >= dateBounds.end) return false;
+          }
           let matchesSearch = true;
 
           let matchesLocation = true;
@@ -3200,7 +3645,7 @@ function applyFilters() {
               .trim()
               .toLowerCase();
 
-            matchesLocation = !location || candidateLocation === location;
+            matchesLocation = locations.length === 0 || locations.includes(candidateLocation);
           }
 
           const candidatePosition = String(
@@ -3215,7 +3660,7 @@ function applyFilters() {
 
           matchesPosition = !position || candidatePosition === position;
 
-          if (activeModule !== "interviews" && experience) {
+          if (activeModule !== "interviews" && (experience || hasCustomExperience)) {
             const exp = parseExperience(
               getField(
                 candidate,
@@ -3226,22 +3671,28 @@ function applyFilters() {
               ),
             );
 
-          if (Number.isNaN(exp)) {
-			matchesExperience = false;
-		} else if (experience === "0-4") {
-			matchesExperience = exp >= 0 && exp <= 4;
-		} else if (experience === "4-6") {
-			matchesExperience = exp > 4 && exp <= 6;
-		} else if (experience === "6-9") {
-			matchesExperience = exp > 6 && exp <= 9;
-		} else if (experience === "9-12") {
-			matchesExperience = exp > 9 && exp <= 12;
-		} else if (experience === "12-16") {
-			matchesExperience = exp > 12 && exp <= 16;
-		} else if (experience === "16-20") {
-			matchesExperience = exp > 16 && exp <= 20;
-		}
-	}
+            if (Number.isNaN(exp)) {
+              matchesExperience = false;
+            } else if (hasCustomExperience) {
+              // Manually entered bounds take precedence over the preset experience bands.
+              matchesExperience =
+                (customMin === null || exp >= customMin) &&
+                (customMax === null || exp <= customMax) &&
+                (customMin === null || customMax === null || customMin <= customMax);
+            } else if (experience === "0-4") {
+              matchesExperience = exp >= 0 && exp <= 4;
+            } else if (experience === "4-6") {
+              matchesExperience = exp > 4 && exp <= 6;
+            } else if (experience === "6-9") {
+              matchesExperience = exp > 6 && exp <= 9;
+            } else if (experience === "9-12") {
+              matchesExperience = exp > 9 && exp <= 12;
+            } else if (experience === "12-16") {
+              matchesExperience = exp > 12 && exp <= 16;
+            } else if (experience === "16-20") {
+              matchesExperience = exp > 16 && exp <= 20;
+            }
+          }
 
           if (activeModule === "applications" && selectedFlag) {
             const candidateFlag = getApplicationFlag(candidate)
@@ -3424,6 +3875,56 @@ function renderCards() {
         renderPagination(data.length, start, end, totalPages);
       }
 
+/* Candidate stage transition: Applications -> Sourced.
+   Mapping is intentionally explicit because the destination has a different schema. */
+const candidateMoveLocks = new Set();
+function moveIdentityKey(record, stage) {
+  const email = String(getField(record, "Email", "email") ?? "").trim().toLowerCase();
+  const phone = String(getField(record, "Contact Number", "phone number", "contact") ?? "").replace(/\D/g, "");
+  const role = String(getField(record, "Position applied for", "Role", "role") ?? "").trim().toLowerCase();
+  return [email, phone, role].join("|");
+}
+async function moveApplicationToSourced(candidate, button) {
+  const key = moveIdentityKey(candidate, "applications");
+  if (candidateMoveLocks.has(key)) return;
+  const name = String(getField(candidate, "Full Name") ?? "").trim();
+  const role = String(getField(candidate, "Position applied for") ?? "").trim();
+  if (!name || !role) { alert("Candidate name and position are required before moving to Sourced."); return; }
+  candidateMoveLocks.add(key); const original = button.textContent; button.disabled = true; button.textContent = "Moving…";
+  try {
+    const response = await fetch(SOURCED_API_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if (!response.ok) throw new Error("Could not verify Sourced records before moving.");
+    const existingResult = await response.json();
+    if (!existingResult.success) throw new Error(existingResult.error || "Could not verify Sourced records.");
+    const rows = Array.isArray(existingResult.data) ? existingResult.data : [];
+    const email = String(getField(candidate,"Email") ?? "").trim().toLowerCase();
+    const phone = String(getField(candidate,"Contact Number") ?? "").replace(/\D/g, "");
+    const duplicate = rows.some(row => {
+      const re = String(getField(row,"email") ?? "").trim().toLowerCase();
+      const rp = String(getField(row,"phone number") ?? "").replace(/\D/g, "");
+      const rr = String(getField(row,"Role") ?? "").trim().toLowerCase();
+      return (email && re === email && rr === role.toLowerCase()) || (phone.length >= 7 && rp === phone && rr === role.toLowerCase());
+    });
+    if (duplicate) { alert("This candidate already appears in Sourced for this role. No new record was created."); return; }
+    const mapped = {
+      "date": new Date().toISOString().slice(0,10),
+      "candidate name": name,
+      "phone number": String(getField(candidate,"Contact Number") ?? ""),
+      "email": String(getField(candidate,"Email") ?? ""),
+      "Role": role,
+      "total experience": String(getField(candidate,"Years of experience") ?? ""),
+      "current location": String(getField(candidate,"Location") ?? ""),
+      "last working date": String(getField(candidate,"Last working day") ?? ""),
+      "FLAG": String(getField(candidate,"FLAG","flag") ?? "")
+    };
+    const save = await fetch(SOURCED_API_URL, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"}, body:new URLSearchParams({action:"addSourced", data:JSON.stringify(mapped)})});
+    const result = await save.json();
+    if (!result.success) throw new Error(result.error || "Sourced save failed.");
+    alert("Candidate moved to Sourced successfully. The original application has been retained as history.");
+  } catch (err) { alert(err.message || "Unable to move candidate to Sourced. The application remains unchanged."); }
+  finally { candidateMoveLocks.delete(key); button.disabled = false; button.textContent = original; }
+}
+
 function renderCard(candidate) {
   const card = document.createElement("div");
   card.className = "candidate-card";
@@ -3447,6 +3948,11 @@ function renderCard(candidate) {
     });
     applyFlagSelectClass(flagSelect);
   }
+  const moveButton = document.createElement("button");
+  moveButton.type = "button"; moveButton.className = "move-stage-btn"; moveButton.textContent = "Move to Sourced";
+  moveButton.style.cssText = "margin:10px 0 0;padding:9px 13px;border:1px solid #16845d;border-radius:8px;background:#e9fff4;color:#075b3b;font-weight:700;cursor:pointer;width:100%;";
+  moveButton.addEventListener("click", event => { event.stopPropagation(); moveApplicationToSourced(candidate, moveButton); });
+  card.appendChild(moveButton);
   cardsContainer.appendChild(card);
 }
 function renderPagination(total, start, end, totalPages) {
@@ -3678,8 +4184,8 @@ function renderApplicationCard(card, candidate) {
         const notice = getField(candidate, "Notice Period") || "—";
 
         const appliedDate = formatTimestamp(
-  getField(candidate, "Applied Date", "Applied Date ")
-);
+          getField(candidate, "Timestamp", "timestamp", "Applied Date", "Applied Date ", "Received Timestamp", "Received Date")
+        );
 
         const hasResume = Boolean(getField(candidate, "Resume"));
 
@@ -3771,7 +4277,7 @@ function renderApplicationCard(card, candidate) {
         <div class="card-footer">
 
           <span class="timestamp">
-            Application
+            ${escapeHTML(appliedDate === "—" ? "Application" : appliedDate)}
           </span>
 
           <div class="application-flag-wrap">
@@ -3838,13 +4344,26 @@ async function loadApplications() {
             { cache: "no-store" },
           );
 
-          const result = await response.json();
-
-          if (!result.success) {
-            throw new Error(result.error || "Unable to load applications.");
+          if (!response.ok) {
+            throw new Error(`Applications API request failed (${response.status} ${response.statusText}).`);
           }
-
-          allApplications = Array.isArray(result.data) ? result.data : [];
+          const contentType = response.headers.get("content-type") || "";
+          let result;
+          try { result = await response.json(); }
+          catch (_) { throw new Error(`Applications API returned an unreadable response${contentType ? ` (${contentType})` : ""}. Check the Apps Script deployment and API response.`); }
+          if (result && result.success === false) {
+            throw new Error(result.error || "Applications API reported that the request was unsuccessful.");
+          }
+          const records = Array.isArray(result) ? result
+            : Array.isArray(result?.data) ? result.data
+            : Array.isArray(result?.results) ? result.results
+            : Array.isArray(result?.applications) ? result.applications
+            : Array.isArray(result?.records) ? result.records
+            : null;
+          if (!records) {
+            throw new Error("Applications API response did not contain an application array (expected an array, data, results, applications, or records). Check the API response structure.");
+          }
+          allApplications = records;
           moduleLoaded.applications = true;
         } catch (err) {
           moduleLoaded.applications = false;
@@ -4016,10 +4535,88 @@ async function saveEditApplication(event) {
       ========================================================== */
 
       searchInput.addEventListener("input", applyFilters);
-      locationFilter.addEventListener("change", applyFilters);
+      if (locationSearchInput) locationSearchInput.addEventListener("input", renderLocationOptions);
+      const locationDropdownToggle = document.getElementById("locationDropdownToggle");
+      const locationDropdownPanel = document.getElementById("locationDropdownPanel");
+      const locationOptionsList = document.getElementById("locationOptionsList");
+      if (locationDropdownToggle && locationDropdownPanel) {
+        locationDropdownToggle.addEventListener("click", () => {
+          const opening = locationDropdownPanel.hidden;
+          locationDropdownPanel.hidden = !opening;
+          locationDropdownToggle.setAttribute("aria-expanded", String(opening));
+          if (opening) { renderLocationOptions(); locationSearchInput.focus(); }
+        });
+        document.addEventListener("click", (event) => {
+          if (!document.getElementById("locationFilterWrap").contains(event.target)) {
+            locationDropdownPanel.hidden = true;
+            locationDropdownToggle.setAttribute("aria-expanded", "false");
+          }
+        });
+        locationDropdownPanel.addEventListener("click", event => event.stopPropagation());
+      }
+      function renderLocationOptions() {
+        if (!locationOptionsList || !locationFilter) return;
+        const query = (locationSearchInput?.value || "").trim().toLocaleLowerCase();
+        const options = [...locationFilter.options];
+        const allOption = options.find(option => option.value === "");
+        const locations = options.filter(option => option.value !== "").sort((a,b) => a.textContent.localeCompare(b.textContent, undefined, {sensitivity:"base"}));
+        const visible = [ ...(allOption ? [allOption] : []), ...locations.filter(option => option.textContent.toLocaleLowerCase().includes(query)) ];
+        locationOptionsList.innerHTML = visible.map(option => {
+          const isAll = option.value === "";
+          const checked = isAll ? [...locationFilter.selectedOptions].every(selected => selected.value === "") : option.selected;
+          return `<label class="location-option-row"><input type="checkbox" data-location-value="${escapeHTML(option.value)}" ${checked ? "checked" : ""}><span>${escapeHTML(isAll ? "All Locations" : option.textContent)}</span></label>`;
+        }).join("") || '<div class="location-no-results">No locations found</div>';
+      }
+      if (locationOptionsList) locationOptionsList.addEventListener("change", event => {
+        const checkbox = event.target.closest("input[data-location-value]");
+        if (!checkbox) return;
+        const value = checkbox.getAttribute("data-location-value");
+        if (value === "") {
+          [...locationFilter.options].forEach(option => option.selected = option.value === "");
+        } else {
+          const allOption = [...locationFilter.options].find(option => option.value === "");
+          if (allOption) allOption.selected = false;
+          const target = [...locationFilter.options].find(option => option.value === value);
+          if (target) target.selected = checkbox.checked;
+          if (![...locationFilter.options].some(option => option.value && option.selected) && allOption) allOption.selected = true;
+        }
+        updateLocationDropdownLabel();
+        renderLocationOptions();
+        applyFilters();
+      });
+      function updateLocationDropdownLabel() {
+        if (!locationDropdownToggle) return;
+        const selected = [...locationFilter.selectedOptions].filter(option => option.value);
+        locationDropdownToggle.innerHTML = `${selected.length ? `${selected.length} LOCATION${selected.length === 1 ? "" : "S"} SELECTED` : "ALL LOCATIONS"} <span aria-hidden="true">▾</span>`;
+      }
+      locationFilter.addEventListener("change", () => {
+        // Keep the All Locations option mutually exclusive with specific selections.
+        const allOption = [...locationFilter.options].find(option => option.value === "");
+        if (allOption && allOption.selected && locationFilter.selectedOptions.length > 1) allOption.selected = false;
+        applyFilters();
+      });
       positionFilter.addEventListener("change", applyFilters);
-      experienceFilter.addEventListener("change", applyFilters);
+      experienceFilter.addEventListener("change", () => {
+        const customExperienceRange = document.getElementById("customExperienceRange");
+        if (customExperienceRange) customExperienceRange.hidden = experienceFilter.value !== "custom";
+        applyFilters();
+      });
+      experienceMinFilter.addEventListener("input", applyFilters);
+      experienceMaxFilter.addEventListener("input", applyFilters);
       flagFilter.addEventListener("change", applyFilters);
+      dateRangeFilter.addEventListener("change", () => {
+        customDateRange.hidden = dateRangeFilter.value !== "custom";
+        if (dateRangeFilter.value !== "custom") applyFilters();
+      });
+      applyCustomDateRange.addEventListener("click", () => {
+        const bounds = getDateRangeBounds();
+        if (bounds.invalid) {
+          error.textContent = bounds.message;
+          error.style.display = "block";
+          return;
+        }
+        applyFilters();
+      });
 
       refreshButton.addEventListener("click", async () => {
         refreshButton.disabled = true;
@@ -4233,3 +4830,161 @@ initializeModule();
 
 </script>
 </body></html>
+
+
+/* =========================================================
+   FILTER TOOLBAR LAYOUT FIX
+   Layout-only override: preserve existing filter IDs and behavior.
+   ========================================================= */
+.toolbar{
+  display:grid !important;
+  grid-template-columns:
+    minmax(220px, 2fr)
+    minmax(165px, 1.25fr)
+    minmax(145px, 1.05fr)
+    minmax(150px, 1.1fr)
+    minmax(96px, .7fr)
+    minmax(96px, .7fr)
+    minmax(118px, .85fr)
+    minmax(145px, 1fr)
+    minmax(112px, .75fr) !important;
+  align-items:center !important;
+  gap:10px !important;
+  padding:14px 16px !important;
+  width:100% !important;
+  min-width:0 !important;
+  overflow:visible !important;
+}
+.toolbar > *{
+  min-width:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+}
+.toolbar .search-box{
+  grid-column:auto !important;
+  flex:none !important;
+  min-width:0 !important;
+}
+.toolbar .search-box input{
+  min-width:0 !important;
+  padding-left:100px !important;
+}
+.toolbar select{
+  min-width:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  padding:11px 10px !important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.toolbar #locationFilter{
+  min-width:0 !important;
+  width:100% !important;
+}
+.toolbar #experienceMinFilter,
+.toolbar #experienceMaxFilter{
+  min-width:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  padding:11px 8px !important;
+}
+.toolbar #customDateRange{
+  grid-column:1 / span 5;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  width:100%;
+  padding-top:2px;
+}
+.toolbar #customDateRange[hidden]{display:none !important}
+.toolbar #customDateRange input{
+  flex:1 1 0;
+  min-width:0;
+  width:100%;
+  padding:9px 8px;
+  background:rgba(0,0,0,.7);
+  border:1px solid var(--border);
+  border-bottom:2px solid var(--primary);
+  color:#fff;
+  font:700 12px "Rajdhani",sans-serif;
+}
+.toolbar #customDateRange button{
+  flex:0 0 auto;
+  padding:10px 12px;
+  white-space:nowrap;
+}
+.toolbar .refresh-btn{
+  justify-self:stretch !important;
+  align-self:stretch !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  padding:10px 8px !important;
+  white-space:nowrap !important;
+}
+
+/* Medium desktop/tablet: use a tidy three-column control grid. */
+@media (max-width:1350px){
+  .toolbar{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:9px !important;
+  }
+  .toolbar .search-box{
+    grid-column:span 2 !important;
+  }
+  .toolbar #customDateRange{
+    grid-column:span 3;
+  }
+  .toolbar .refresh-btn{
+    grid-column:span 1;
+  }
+}
+
+/* Mobile/tablet: search gets its own row; controls remain aligned. */
+@media (max-width:760px){
+  .toolbar{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    padding:12px !important;
+    gap:8px !important;
+  }
+  .toolbar .search-box{
+    grid-column:1 / -1 !important;
+  }
+  .toolbar .search-box input{
+    padding-left:100px !important;
+  }
+  .toolbar #customDateRange{
+    grid-column:1 / -1;
+  }
+  .toolbar #customDateRange input{
+    min-width:0;
+  }
+  .toolbar .refresh-btn{
+    grid-column:1 / -1;
+    min-height:40px !important;
+  }
+}
+@media (max-width:420px){
+  .toolbar{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  .toolbar .search-box,
+  .toolbar #customDateRange,
+  .toolbar .refresh-btn{
+    grid-column:1 !important;
+  }
+  .toolbar #customDateRange{
+    flex-wrap:wrap;
+  }
+  .toolbar #customDateRange input,
+  .toolbar #customDateRange button{
+    flex:1 1 100%;
+  }
+}
+
